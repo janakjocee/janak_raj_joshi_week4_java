@@ -1,0 +1,115 @@
+import javafx.application.Application;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+
+public class ConnectFourGame extends Application {
+    private static final int ROWS = 6;
+    private static final int COLUMNS = 7;
+    private char[][] board = new char[ROWS][COLUMNS];
+    private char currentPlayer = 'X';
+    private GridPane gridPane = new GridPane();
+    private boolean gameOver = false;
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        initializeBoard();
+        drawBoard(primaryStage);
+
+        primaryStage.setTitle("Connect Four");
+        primaryStage.setScene(new Scene(gridPane, COLUMNS * 100, (ROWS + 1) * 100));
+        primaryStage.show();
+    }
+
+    private void initializeBoard() {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLUMNS; col++) {
+                board[row][col] = ' ';
+            }
+        }
+    }
+
+    private void drawBoard(Stage stage) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLUMNS; col++) {
+                Circle circle = createCircle();
+                int finalRow = row;
+                int finalCol = col;
+                circle.setOnMouseClicked(e -> handleMove(finalRow, finalCol, circle, stage));
+                gridPane.add(circle, col, row);
+            }
+        }
+    }
+
+    private Circle createCircle() {
+        Circle circle = new Circle(45);
+        circle.setFill(Color.WHITE);
+        circle.setStroke(Color.BLACK);
+        return circle;
+    }
+
+    private void handleMove(int row, int col, Circle circle, Stage stage) {
+        if (!gameOver && board[row][col] == ' ') {
+            int emptyRow = getEmptyRow(col);
+            if (emptyRow != -1) {
+                board[emptyRow][col] = currentPlayer;
+                Color color = (currentPlayer == 'X') ? Color.RED : Color.YELLOW;
+                circle.setFill(color);
+                currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+
+                if (checkWin(emptyRow, col)) {
+                    displayGameOver("Player " + board[emptyRow][col] + " wins!", stage);
+                } else if (isBoardFull()) {
+                    displayGameOver("It's a draw!", stage);
+                }
+            }
+        }
+    }
+
+    private int getEmptyRow(int col) {
+        for (int row = ROWS - 1; row >= 0; row--) {
+            if (board[row][col] == ' ') {
+                return row;
+            }
+        }
+        return -1;
+    }
+
+    private boolean isBoardFull() {
+        for (int col = 0; col < COLUMNS; col++) {
+            if (board[0][col] == ' ') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean checkWin(int row, int col) {
+        char player = board[row][col];
+
+        // Implement the logic to check for four connected discs (win condition).
+        // You need to check horizontally, vertically, and diagonally.
+        // This is a key part of the game logic that you'll need to implement.
+        // You can expand on this code to check for connections.
+
+        return false;
+    }
+
+    private void displayGameOver(String message, Stage stage) {
+        gameOver = true;
+        Stage gameOverStage = new Stage();
+        gameOverStage.initOwner(stage);
+        gameOverStage.setTitle("Game Over");
+        Button closeButton = new Button("Close");
+        closeButton.setOnAction(e -> gameOverStage.close());
+        gameOverStage.setScene(new Scene(closeButton, 200, 100));
+        gameOverStage.show();
+    }
+}
