@@ -1,18 +1,20 @@
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public class ConnectFourGame extends Application {
+public class ConnectFour extends Application {
     private static final int ROWS = 6;
     private static final int COLUMNS = 7;
     private char[][] board = new char[ROWS][COLUMNS];
-    private char currentPlayer = 'X';
     private GridPane gridPane = new GridPane();
     private boolean gameOver = false;
+    private boolean yellowTurn = true;
+    private Label playerLabel;
 
     public static void main(String[] args) {
         launch(args);
@@ -23,8 +25,9 @@ public class ConnectFourGame extends Application {
         initializeBoard();
         drawBoard(primaryStage);
 
-        primaryStage.setTitle("Connect Four");
-        primaryStage.setScene(new Scene(gridPane, COLUMNS * 100, (ROWS + 1) * 100));
+        primaryStage.setTitle("Janak's Connect Four");
+        playerLabel = new Label("Player: Yellow");
+        primaryStage.setScene(new Scene(new javafx.scene.layout.VBox(playerLabel, gridPane), COLUMNS * 100, (ROWS + 2) * 100));
         primaryStage.show();
     }
 
@@ -59,16 +62,19 @@ public class ConnectFourGame extends Application {
         if (!gameOver && board[row][col] == ' ') {
             int emptyRow = getEmptyRow(col);
             if (emptyRow != -1) {
+                char currentPlayer = yellowTurn ? 'Y' : 'R';
                 board[emptyRow][col] = currentPlayer;
-                Color color = (currentPlayer == 'X') ? Color.RED : Color.YELLOW;
+                Color color = (currentPlayer == 'Y') ? Color.YELLOW : Color.RED;
                 circle.setFill(color);
-                currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
 
-                if (checkWin(emptyRow, col)) {
-                    displayGameOver("Player " + board[emptyRow][col] + " wins!", stage);
+                if (checkWin(emptyRow, col, currentPlayer)) {
+                    displayWinner(currentPlayer, stage);
                 } else if (isBoardFull()) {
-                    displayGameOver("It's a draw!", stage);
+                    displayWinner('D', stage); // 'D' represents a draw
                 }
+
+                yellowTurn = !yellowTurn;
+                playerLabel.setText("Player: " + (yellowTurn ? "Yellow" : "Red"));
             }
         }
     }
@@ -91,25 +97,89 @@ public class ConnectFourGame extends Application {
         return true;
     }
 
-    private boolean checkWin(int row, int col) {
-        char player = board[row][col];
+    private boolean checkWin(int row, int col, char currentPlayer) {
+        // Check for four in a row horizontally, vertically, and diagonally
+        int count = 0;
 
-        // Implement the logic to check for four connected discs (win condition).
-        // You need to check horizontally, vertically, and diagonally.
-        // This is a key part of the game logic that you'll need to implement.
-        // You can expand on this code to check for connections.
+        // Check horizontally
+        for (int c = 0; c < COLUMNS; c++) {
+            if (board[row][c] == currentPlayer) {
+                count++;
+                if (count >= 4) {
+                    return true;
+                }
+            } else {
+                count = 0;
+            }
+        }
 
-        return false;
+        count = 0;
+        // Check vertically
+        for (int r = 0; r < ROWS; r++) {
+            if (board[r][col] == currentPlayer) {
+                count++;
+                if (count >= 4) {
+                    return true;
+                }
+            } else {
+                count = 0;
+            }
+        }
+
+        count = 0;
+        // Check diagonally (up-right)
+        int r = row;
+        int c = col;
+        while (r < ROWS && c < COLUMNS && board[r][c] == currentPlayer) {
+            count++;
+            r++;
+            c++;
+        }
+        r = row - 1;
+        c = col - 1;
+        while (r >= 0 && c >= 0 && board[r][c] == currentPlayer) {
+            count++;
+            r--;
+            c--;
+        }
+        if (count >= 4) {
+            return true;
+        }
+
+        count = 0;
+        // Check diagonally (up-left)
+        r = row;
+        c = col;
+        while (r < ROWS && c >= 0 && board[r][c] == currentPlayer) {
+            count++;
+            r++;
+            c--;
+        }
+        r = row - 1;
+        c = col + 1;
+        while (r >= 0 && c < COLUMNS && board[r][c] == currentPlayer) {
+            count++;
+            r--;
+            c++;
+        }
+        return count >= 4;
     }
 
-    private void displayGameOver(String message, Stage stage) {
+    private void displayWinner(char player, Stage stage) {
         gameOver = true;
+        String message = "It's a draw!";
+        if (player == 'Y') {
+            message = "Yellow won!";
+        } else if (player == 'R') {
+            message = "Red won!";
+        }
         Stage gameOverStage = new Stage();
         gameOverStage.initOwner(stage);
         gameOverStage.setTitle("Game Over");
         Button closeButton = new Button("Close");
+        Label winnerLabel = new Label(message);
         closeButton.setOnAction(e -> gameOverStage.close());
-        gameOverStage.setScene(new Scene(closeButton, 200, 100));
+        gameOverStage.setScene(new Scene(new javafx.scene.layout.VBox(winnerLabel, closeButton), 200, 100));
         gameOverStage.show();
     }
 }
